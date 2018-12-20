@@ -1,12 +1,8 @@
 package com.example.ashwani.rxcountry;
 
-import android.content.Context;
-
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
-import java.util.List;
-
-import retrofit2.Call;
+import io.reactivex.Observable;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
@@ -28,6 +24,6 @@ public class CountryApi {
     }
     public interface CountryService{
         @GET("tutorial/jsonparsetutorial.txt")
-        Call<Worldpopulation> getWorld();
+        Observable<Worldpopulation> getWorld();
     }
 }

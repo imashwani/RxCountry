@@ -1,52 +1,65 @@
 package com.example.ashwani.rxcountry;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.TextView;
-
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
+
+    List<Country> countryList;
+    private RecyclerView recyclerView;
+    private CountryAdapter countryAdapter;
+    Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final TextView textView = findViewById(R.id.hello);
 
-        Call<Worldpopulation> call = CountryApi.getClient().getWorld();
+        recyclerView = findViewById(R.id.recycler_view);
+        context = this;
 
-        call.enqueue(new Callback<Worldpopulation>() {
-            @Override
-            public void onResponse(Call<Worldpopulation> call, Response<Worldpopulation> response) {
-                Log.d("Main", "onResponse: " + response);
+        final CountryApi.CountryService countryApi = CountryApi.getClient();
 
-                if (response.body() != null) {
+        countryApi.getWorld().subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Worldpopulation>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
-                    Log.d("MainActivity", "onResponse: " + response.body().getCountryList());
-                    try {
-                        List<Country> countryList = response.body().getCountryList();
-                        for (Country c : countryList) {
-                            textView.append(c.getRank()+". "+ c.getCountry() + "\t" + c.getFlag() + "\n" + c.getPopulation()+"\n");
-                        }
-                    } catch (Exception e) {
-                        textView.setText("Exception occurred");
-                        e.printStackTrace();
                     }
-                }
 
-            }
+                    @Override
+                    public void onNext(Worldpopulation worldpopulation) {
 
+                        countryList = (worldpopulation.getCountryList());
 
-            @Override
-            public void onFailure(Call<Worldpopulation> call, Throwable t) {
-                textView.setText("Failed");
-            }
-        });
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                        countryAdapter = new CountryAdapter(countryList);
+                        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
+                        recyclerView.setLayoutManager(layoutManager);
+                        recyclerView.setHasFixedSize(true);
+                        recyclerView.setAdapter(countryAdapter);
+
+                    }
+                });
+
     }
+
 }
